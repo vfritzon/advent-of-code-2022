@@ -16,65 +16,60 @@ func main() {
 }
 
 func part1(fileName string) (max int) {
-	file, _ := os.Open(fileName)
+	file, error := os.Open(fileName)
+	defer file.Close()
+	if error != nil {
+		panic(error)
+	}
+
 	scanner := bufio.NewScanner(file)
+
 	maxCalories := 0
 	currentElfCalories := 0
-	for {
-		lastItem := !scanner.Scan()
-		line := scanner.Text()
-		lastItemForElf := line == ""
 
-		if lastItem || lastItemForElf {
+	for scanner.Scan() {
+		itemCalories, error := strconv.Atoi(scanner.Text())
+		currentElfCalories += itemCalories // relies on `AtoI` returning 0 when conversion fails (which it does for empty lines in our input)
+
+		doneCountingForCurrentElf := error != nil
+		if doneCountingForCurrentElf {
 			if currentElfCalories > maxCalories {
 				maxCalories = currentElfCalories
 			}
-			currentElfCalories = 0
-		} else {
-			itemCalories, _ := strconv.Atoi(line)
-			currentElfCalories += itemCalories
+			currentElfCalories = 0 // start counting calories for next elf
 		}
 
-		if lastItem {
-			break
-		}
 	}
-	file.Close()
 
 	return maxCalories
 }
 
 func part2(fileName string) (max int) {
-	file, _ := os.Open(fileName)
+	file, error := os.Open(fileName)
+	defer file.Close()
+	if error != nil {
+		panic(error)
+	}
+
 	scanner := bufio.NewScanner(file)
-	top3 := []int{0, 0, 0}
+
+	top3Calories := []int{0, 0, 0}
 	currentElfCalories := 0
-	for {
-		lastItem := !scanner.Scan()
-		line := scanner.Text()
-		lastItemForElf := line == ""
 
-		if lastItem || lastItemForElf {
-			if currentElfCalories > top3[0] {
-				top3[0] = currentElfCalories
-				sort.Ints(top3)
+	for scanner.Scan() {
+		itemCalories, error := strconv.Atoi(scanner.Text())
+		currentElfCalories += itemCalories // relies on `AtoI` returning 0 when conversion fails (which it does for empty lines in our input)
+
+		doneCountingForCurrentElf := error != nil
+		if doneCountingForCurrentElf {
+			if currentElfCalories > top3Calories[0] {
+				top3Calories[0] = currentElfCalories
+				sort.Ints(top3Calories)
 			}
-			currentElfCalories = 0
-		} else {
-			itemCalories, _ := strconv.Atoi(line)
-			currentElfCalories += itemCalories
+			currentElfCalories = 0 // start counting calories for next elf
 		}
 
-		if lastItem {
-			file.Close()
-			break
-		}
 	}
 
-	sum := 0
-	for _, v := range top3 {
-		sum += v
-	}
-
-	return sum
+	return top3Calories[0] + top3Calories[1] + top3Calories[2]
 }
